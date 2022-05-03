@@ -31,6 +31,8 @@ public:
     ~ThreadPool();
     /* 设置线程池的工作模式 */
     void setMode(PoolMode mode);
+    /* 设置初始的线程数量 */
+    void setInitThreadSize(int size);
     /* 设置task队列任务数量最大阈值 */
     void setTaskQueMaxThreshHold(int threshHold);
     /* 启动线程池 */
