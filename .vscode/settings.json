@@ -5,6 +5,7 @@
         "vector": "cpp",
         "unordered_map": "cpp",
         "optional": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "thread": "cpp"
     }
 }

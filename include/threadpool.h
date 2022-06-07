@@ -34,7 +34,7 @@ public:
     /* 线程函数对象类型别名 */
     using ThreadFunc = std::function<void()>;
     Thread(ThreadFunc func);
-    ~Thread();
+    ~Thread() = default;
     void start();
 private:
     ThreadFunc m_func;
