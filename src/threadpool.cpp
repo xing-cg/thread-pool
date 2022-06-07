@@ -58,7 +58,21 @@ void ThreadPool::start(int initThreadSize)
     }
 }
 /* 给线程池提交任务 */
-void ThreadPool::submitTask(std::shared_ptr<Task> task)
+void ThreadPool::submitTask(std::shared_ptr<Task> sp)
 {
-
+    /* 获取锁 */
+    std::unique_lock<std::mutex> lock(m_taskQueMtx);
+    /* 线程的通信，等待任务队列有空余 */
+    //while(taskQue_.size() == taskQueMaxThreshHold_){ notFull_.wait(); }
+    m_taskQueNotFull.wait(
+        lock,
+        [&]()->bool {
+            return m_taskQueue.size() < m_taskQueMaxThreshHold;
+        }
+    );
+    /* 如果有空余，把任务放到任务队列中 */
+	m_taskQueue.emplace(sp);
+    ++m_taskNum;
+    /* 因为新放了任务，任务队列肯定不空了，通知notEmpty_上的等待线程 */
+    m_taskQueNotEmpty.notify_all();
 }
