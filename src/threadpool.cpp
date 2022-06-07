@@ -1,11 +1,24 @@
 #include"threadpool.h"
+#include<thread>
 const int TASK_MAX_THRESHHOLD = 1024;
+/******************* 线程 *******************/
+Thread::Thread(ThreadFunc func)
+	: m_func(func)
+{
+    
+}
+void Thread::start()
+{
+    std::thread t(m_func);
+    t.detach();
+}
+/*******************线程池*******************/
 /* 线程池构造 */
 ThreadPool::ThreadPool()
-    :   m_initThreadSize(4),
-        m_taskNum(0),
-        m_taskQueMaxThreshHold(TASK_MAX_THRESHHOLD),
-        m_poolMode(PoolMode::MODE_FIXED)
+    : m_initThreadSize(4),
+      m_taskNum(0),
+      m_taskQueMaxThreshHold(TASK_MAX_THRESHHOLD),
+      m_poolMode(PoolMode::MODE_FIXED)
 {
 
 }
@@ -29,9 +42,20 @@ void ThreadPool::setTaskQueMaxThreshHold(int threshHold)
     m_taskQueMaxThreshHold = threshHold;
 }
 /* 启动线程池 */
-void ThreadPool::start()
+void ThreadPool::start(int initThreadSize)
 {
-
+    m_initThreadSize = initThreadSize;
+    for(int i = 0; i < m_initThreadSize; ++i)
+    {
+        auto ptr = std::make_unique<Thread>(
+            std::bind(&ThreadPool::threadFunc, this)
+        );
+        m_threads.emplace_back(std::move(ptr));
+    }
+    for(int i = 0; i < m_initThreadSize; ++i)
+    {
+        m_threads[i]->start();
+    }
 }
 /* 给线程池提交任务 */
 void ThreadPool::submitTask(std::shared_ptr<Task> task)

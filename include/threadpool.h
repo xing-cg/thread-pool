@@ -6,24 +6,42 @@
 #include<atomic>
 #include<mutex>
 #include<condition_variable>
-/* 任务抽象基类 */
+#include<functional>
+/** 
+ * 任务抽象基类
+ */
 class Task
 {
 public:
     virtual void run() = 0;
 };
-/* 线程池模式 */
+
+/** 
+ * 线程池模式
+ */
 enum class PoolMode
 {
     MODE_FIXED,     // 固定数量的线程
     MODE_CACHED,    // 线程数量可动态增长
 };
+
+/**
+ * 线程类
+ */
 class Thread
 {
 public:
+    /* 线程函数对象类型别名 */
+    using ThreadFunc = std::function<void()>;
+    Thread(ThreadFunc func);
+    ~Thread();
+    void start();
 private:
-
+    ThreadFunc m_func;
 };
+/**
+ * 线程池类
+ */
 class ThreadPool
 {
 public:
@@ -36,14 +54,15 @@ public:
     /* 设置task队列任务数量最大阈值 */
     void setTaskQueMaxThreshHold(int threshHold);
     /* 启动线程池 */
-    void start();
+    void start(int initThreadSize);
     /* 给线程池提交任务 */
     void submitTask(std::shared_ptr<Task> task);
 private:
     PoolMode m_poolMode;                //当前线程池工作模式
-    std::vector<Thread*> m_threads;     //线程列表
+    std::vector<std::unique_ptr<Thread>> m_threads;     //线程列表
     int m_initThreadSize;               //初始的线程数量
-    /* 任务队列容器。
+    /**
+     * 任务队列容器。
      * 特别要注意，需要用shared_ptr强引用用户传来的task，
      * 以保证任务对象的生命期。
      */
@@ -61,5 +80,6 @@ private:
 private:
     ThreadPool(const ThreadPool &) = delete;
     ThreadPool& operator=(const ThreadPool &) = delete;
+    void threadFunc();
 };
 #endif
